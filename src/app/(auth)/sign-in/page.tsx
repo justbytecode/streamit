@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+
 import Image from "next/image";
 
 import { authClient } from "@/lib/auth-client";
@@ -30,9 +30,7 @@ const SignIn = () => {
          
 
           
-           
-            
-         
+          
         </section>
 
         {/* Right Section - Sign In Card */}
