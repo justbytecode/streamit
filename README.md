@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+🚀 Loom Clone – Screen Recording SaaS (Next.js + Better Auth + Xata)
 
-## Getting Started
+A fully-featured Loom-style video recording platform built using Next.js 14, Better Auth, Xata Database, Bunny Stream, and the MediaRecorder API.
+It includes screen recording, webcam recording, audio capture, video uploading, sharing, analytics, and more — just like Loom.
 
-First, run the development server:
+⭐ Features
+🎥 Recording Capabilities
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Screen recording
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Screen + webcam recording
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Webcam-only mode
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Microphone + system audio
 
-## Learn More
+Pause/resume recording
 
-To learn more about Next.js, take a look at the following resources:
+Timer, size, and progress indicators
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Retake recording option
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🎬 Video Processing
 
-## Deploy on Vercel
+Upload video to Bunny Storage / Bunny Stream
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Generate video URL & streaming link
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Thumbnail generation
+
+Save video metadata to Xata
+
+Real-time upload progress indicator
+
+🔐 Authentication (Better Auth)
+
+Super lightweight, secure auth
+
+Email/password login
+
+API token support
+
+Session management
+
+Built for server components & Next.js App Router
+
+📁 User Dashboard
+
+View all recordings
+
+Rename videos
+
+Delete recordings
+
+Copy shareable links
+
+Private / public / unlisted mode
+
+🔗 Sharing & Playback
+
+High-quality streaming (Bunny Stream)
+
+Custom video playback page
+
+Secure URLs
+
+Optional password protection
+
+📊 Optional Analytics
+
+View count
+
+Watch time
+
+Geo/device analytics
