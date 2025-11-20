@@ -3,17 +3,30 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import aj, { createMiddleware, detectBot, shield } from "@/lib/arcjet";
 
-export async function middleware(request: NextRequest) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+// Define protected routes that require authentication
+const protectedRoutes = ["/upload", "/profile"];
 
-  if (!session) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // Check if the current path is a protected route
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
+
+  if (isProtectedRoute) {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session) {
+      return NextResponse.redirect(new URL("/sign-in", request.url));
+    }
   }
 
   return NextResponse.next();
 }
+
 const validate = aj
   .withRule(
     shield({
@@ -23,14 +36,14 @@ const validate = aj
   .withRule(
     detectBot({
       mode: "LIVE",
-      allow: ["CATEGORY:SEARCH_ENGINE", "G00G1E_CRAWLER"], // allow other bots if you want to.
+      allow: ["CATEGORY:SEARCH_ENGINE", "G00G1E_CRAWLER"],
     })
   );
 
 export default createMiddleware(validate);
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|sign-in|assets).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|sign-in|assets).*)",
+  ],
 };
-
-// ⨯ [TypeError: Body is unusable: Body has already been read]

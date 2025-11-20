@@ -9,11 +9,14 @@ import { filterOptions } from "@/constants";
 import ImageWithFallback from "./ImageWithFallback";
 import DropdownList from "./DropdownList";
 import { updateURLParams } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
 
 const SharedHeader = ({ subHeader, title, userImg }: SharedHeaderProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: session } = authClient.useSession();
+  const isAuthenticated = !!session?.user;
 
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("query") || ""
@@ -89,18 +92,20 @@ const SharedHeader = ({ subHeader, title, userImg }: SharedHeaderProps) => {
             <h1>{title}</h1>
           </article>
         </figure>
-        <aside>
-          <Link href="/upload">
-            <Image
-              src="/assets/icons/upload.svg"
-              alt="upload"
-              width={16}
-              height={16}
-            />
-            <span>Upload a video</span>
-          </Link>
-          <RecordScreen />
-        </aside>
+        {isAuthenticated && (
+          <aside>
+            <Link href="/upload">
+              <Image
+                src="/assets/icons/upload.svg"
+                alt="upload"
+                width={16}
+                height={16}
+              />
+              <span>Upload a video</span>
+            </Link>
+            <RecordScreen />
+          </aside>
+        )}
       </section>
       <section className="search-filter">
         <div className="search">

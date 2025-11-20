@@ -5,6 +5,7 @@ import { redirect, useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
 import ImageWithFallback from "./ImageWithFallback";
+
 const Navbar = () => {
   const router = useRouter();
   const { data: session } = authClient.useSession();
@@ -14,16 +15,10 @@ const Navbar = () => {
     <header className="navbar">
       <nav>
         <Link href="/">
-          {/* <Image
-            src="/assets/icons/logo.svg"
-            alt="SnapChat Logo"
-            width={32}
-            height={32}
-          /> */}
           <h1>RecordIt</h1>
         </Link>
 
-        {user && (
+        {user ? (
           <figure>
             <button onClick={() => router.push(`/profile/${session?.user.id}`)}>
               <ImageWithFallback
@@ -55,6 +50,13 @@ const Navbar = () => {
               />
             </button>
           </figure>
+        ) : (
+          <Link
+            href="/sign-in"
+            className="py-2.5 px-5 text-sm font-semibold text-white bg-pink-100 rounded-4xl"
+          >
+            Sign In
+          </Link>
         )}
       </nav>
     </header>

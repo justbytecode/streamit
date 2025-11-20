@@ -6,10 +6,15 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import {apiFetch, doesTitleMatch, getEnv, getOrderByClause, withErrorHandling} from "@/lib/utils";
+import {
+  apiFetch,
+  doesTitleMatch,
+  getEnv,
+  getOrderByClause,
+  withErrorHandling,
+} from "@/lib/utils";
 import { BUNNY } from "@/constants";
 import aj, { fixedWindow, request } from "../arcjet";
-
 
 const VIDEO_STREAM_BASE_URL = BUNNY.STREAM_BASE_URL;
 const THUMBNAIL_STORAGE_BASE_URL = BUNNY.STORAGE_BASE_URL;
@@ -35,7 +40,6 @@ const validateWithArcjet = async (fingerPrint: string) => {
     throw new Error("Rate Limit Exceeded");
   }
 };
-
 
 const revalidatePaths = (paths: string[]) => {
   paths.forEach((path) => revalidatePath(path));
@@ -115,31 +119,29 @@ export const saveVideoDetails = withErrorHandling(
       updatedAt: now,
     });
 
-    revalidatePaths(["/"]);
+    revalidatePaths(["/", `/profile/${userId}`]);
     return { videoId: videoDetails.videoId };
   }
 );
 
-export const getAllVideos = withErrorHandling(async (
-  searchQuery: string = '',
-  sortFilter?: string,
-  pageNumber: number = 1,
-  pageSize: number = 8,
-) => {
-  const session = await auth.api.getSession({ headers: await headers() })
-  const currentUserId = session?.user.id;
+export const getAllVideos = withErrorHandling(
+  async (
+    searchQuery: string = "",
+    sortFilter?: string,
+    pageNumber: number = 1,
+    pageSize: number = 8
+  ) => {
+    const session = await auth.api.getSession({ headers: await headers() });
+    const currentUserId = session?.user.id;
 
-  const canSeeTheVideos = or(
-      eq(videos.visibility, 'public'),
-      eq(videos.userId, currentUserId!),
-  );
+    // Build visibility condition - show public videos OR user's own videos if logged in
+    const visibilityCondition = currentUserId
+      ? or(eq(videos.visibility, "public"), eq(videos.userId, currentUserId))
+      : eq(videos.visibility, "public");
 
-  const whereCondition = searchQuery.trim()
-      ? and(
-          canSeeTheVideos,
-          doesTitleMatch(videos, searchQuery),
-      )
-      : canSeeTheVideos
+    const whereCondition = searchQuery.trim()
+      ? and(visibilityCondition, doesTitleMatch(videos, searchQuery))
+      : visibilityCondition;
 
     // Count total for pagination
     const [{ totalCount }] = await db
@@ -172,18 +174,52 @@ export const getAllVideos = withErrorHandling(async (
   }
 );
 
-export const getVideoById = withErrorHandling(async (videoId: string) => {
-  const [videoRecord] = await buildVideoWithUserQuery().where(
-    eq(videos.videoId, videoId)
-  );
-  return videoRecord;
-});
+export const getVideoById = async (videoId: string) => {
+  try {
+    console.log("Fetching video with videoId:", videoId);
+
+    const session = await auth.api.getSession({ headers: await headers() });
+    const currentUserId = session?.user.id;
+
+    const [videoRecord] = await buildVideoWithUserQuery().where(
+      eq(videos.videoId, videoId)
+    );
+
+    if (!videoRecord) {
+      console.error("Video not found in database:", videoId);
+      return null;
+    }
+
+    // Check if user has permission to view this video
+    if (
+      videoRecord.video.visibility === "private" &&
+      videoRecord.video.userId !== currentUserId
+    ) {
+      console.error("Unauthorized access attempt for video:", videoId);
+      return null;
+    }
+
+    console.log("Video found successfully:", videoRecord.video.title);
+    return videoRecord;
+  } catch (error) {
+    console.error("Error in getVideoById:", error);
+    return null;
+  }
+};
 
 export const getTranscript = withErrorHandling(async (videoId: string) => {
-  const response = await fetch(
-    `${BUNNY.TRANSCRIPT_URL}/${videoId}/captions/en-auto.vtt`
-  );
-  return response.text();
+  try {
+    const response = await fetch(
+      `${BUNNY.TRANSCRIPT_URL}/${videoId}/captions/en-auto.vtt`
+    );
+    if (!response.ok) {
+      return "";
+    }
+    return response.text();
+  } catch (error) {
+    console.error("Error fetching transcript:", error);
+    return "";
+  }
 });
 
 export const incrementVideoViews = withErrorHandling(
@@ -193,7 +229,7 @@ export const incrementVideoViews = withErrorHandling(
       .set({ views: sql`${videos.views} + 1`, updatedAt: new Date() })
       .where(eq(videos.videoId, videoId));
 
-    revalidatePaths([`/video/${videoId}`]);
+    revalidatePaths([`/video/${videoId}`, "/"]);
     return {};
   }
 );
@@ -204,9 +240,8 @@ export const getAllVideosByUser = withErrorHandling(
     searchQuery: string = "",
     sortFilter?: string
   ) => {
-    const currentUserId = (
-      await auth.api.getSession({ headers: await headers() })
-    )?.user.id;
+    const session = await auth.api.getSession({ headers: await headers() });
+    const currentUserId = session?.user.id;
     const isOwner = userIdParameter === currentUserId;
 
     const [userInfo] = await db
@@ -220,7 +255,7 @@ export const getAllVideosByUser = withErrorHandling(
       .where(eq(user.id, userIdParameter));
     if (!userInfo) throw new Error("User not found");
 
-        /* eslint-disable @typescript-eslint/no-explicit-any */
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     const conditions = [
       eq(videos.userId, userIdParameter),
       !isOwner && eq(videos.visibility, "public"),
@@ -239,13 +274,25 @@ export const getAllVideosByUser = withErrorHandling(
 
 export const updateVideoVisibility = withErrorHandling(
   async (videoId: string, visibility: Visibility) => {
+    const userId = await getSessionUserId();
     await validateWithArcjet(videoId);
+
+    // Verify ownership
+    const [video] = await db
+      .select()
+      .from(videos)
+      .where(eq(videos.videoId, videoId));
+
+    if (!video || video.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
     await db
       .update(videos)
       .set({ visibility, updatedAt: new Date() })
       .where(eq(videos.videoId, videoId));
 
-    revalidatePaths(["/", `/video/${videoId}`]);
+    revalidatePaths(["/", `/video/${videoId}`, `/profile/${userId}`]);
     return {};
   }
 );
@@ -267,19 +314,33 @@ export const getVideoProcessingStatus = withErrorHandling(
 
 export const deleteVideo = withErrorHandling(
   async (videoId: string, thumbnailUrl: string) => {
+    const userId = await getSessionUserId();
+
+    // Verify ownership
+    const [video] = await db
+      .select()
+      .from(videos)
+      .where(eq(videos.videoId, videoId));
+
+    if (!video || video.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
     await apiFetch(
       `${VIDEO_STREAM_BASE_URL}/${BUNNY_LIBRARY_ID}/videos/${videoId}`,
       { method: "DELETE", bunnyType: "stream" }
     );
 
     const thumbnailPath = thumbnailUrl.split("thumbnails/")[1];
-    await apiFetch(
-      `${THUMBNAIL_STORAGE_BASE_URL}/thumbnails/${thumbnailPath}`,
-      { method: "DELETE", bunnyType: "storage", expectJson: false }
-    );
+    if (thumbnailPath) {
+      await apiFetch(
+        `${THUMBNAIL_STORAGE_BASE_URL}/thumbnails/${thumbnailPath}`,
+        { method: "DELETE", bunnyType: "storage", expectJson: false }
+      );
+    }
 
     await db.delete(videos).where(eq(videos.videoId, videoId));
-    revalidatePaths(["/", `/video/${videoId}`]);
+    revalidatePaths(["/", `/video/${videoId}`, `/profile/${userId}`]);
     return {};
   }
 );
