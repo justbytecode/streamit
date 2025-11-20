@@ -18,7 +18,10 @@ export default function NotFound() {
           </figure>
           <article>
             <h1>Content Not Found</h1>
-            <p>The content you're looking for doesn't exist or has been removed.</p>
+            <p>
+              The content you&#39;re looking for doesn&#39;t exist or has been
+              removed.
+            </p>
           </article>
           <Link
             href="/"

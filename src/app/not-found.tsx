@@ -4,7 +4,6 @@ import Image from "next/image";
 export default function NotFound() {
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Simple navbar without client components */}
       <header className="navbar">
         <nav>
           <Link href="/">
@@ -31,7 +30,10 @@ export default function NotFound() {
           </figure>
           <article>
             <h1>Page Not Found</h1>
-            <p>The page you're looking for doesn't exist or has been moved.</p>
+            <p>
+              The page you&#39;re looking for doesn&#39;t exist or has been
+              moved.
+            </p>
           </article>
           <Link
             href="/"
