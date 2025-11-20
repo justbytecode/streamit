@@ -38,35 +38,50 @@ const Pagination = ({
   };
 
   return (
-    <section className="pagination">
+    <section className="flex items-center justify-between gap-6 border-t border-gray-100 py-6">
+      {/* Previous Button */}
       <button
         onClick={() => navigateToPage(currentPage - 1)}
-        className={cn("nav-button", {
-          "pointer-events-none opacity-50": currentPage === 1,
-        })}
         disabled={currentPage === 1}
-        aria-disabled={currentPage === 1}
+        className={cn(
+          "group flex items-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:border-pink-500/30 hover:bg-pink-50 hover:text-pink-600 hover:shadow-md",
+          {
+            "pointer-events-none opacity-40": currentPage === 1,
+          }
+        )}
       >
         <Image
           src="/assets/icons/arrow-left.svg"
           alt="Previous"
           width={16}
           height={16}
+          className="transition-transform group-hover:-translate-x-0.5"
         />
-        Previous
+        <span>Previous</span>
       </button>
 
-      <div>
+      {/* Page Numbers */}
+      <div className="flex items-center gap-2">
         {pages.map((page, index) =>
           page === "..." ? (
-            <span key={`ellipsis-${index}`}>...</span>
+            <span 
+              key={`ellipsis-${index}`}
+              className="px-2 text-sm font-semibold text-gray-400"
+            >
+              ...
+            </span>
           ) : (
             <button
               key={`page-${page}`}
               onClick={() => navigateToPage(page as number)}
-              className={cn({
-                "bg-pink-100 text-white": currentPage === page,
-              })}
+              className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition-all hover:bg-pink-50 hover:text-pink-600",
+                {
+                  "bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30 hover:bg-pink-600 hover:text-white hover:shadow-xl hover:shadow-pink-500/40":
+                    currentPage === page,
+                  "text-gray-600": currentPage !== page,
+                }
+              )}
             >
               {page}
             </button>
@@ -74,20 +89,24 @@ const Pagination = ({
         )}
       </div>
 
+      {/* Next Button */}
       <button
         onClick={() => navigateToPage(currentPage + 1)}
-        className={cn("nav-button", {
-          "pointer-events-none opacity-50": currentPage === totalPages,
-        })}
         disabled={currentPage === totalPages}
-        aria-disabled={currentPage === totalPages}
+        className={cn(
+          "group flex items-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:border-pink-500/30 hover:bg-pink-50 hover:text-pink-600 hover:shadow-md",
+          {
+            "pointer-events-none opacity-40": currentPage === totalPages,
+          }
+        )}
       >
-        Next
+        <span>Next</span>
         <Image
           src="/assets/icons/arrow-right.svg"
-          alt="next"
+          alt="Next"
           width={16}
           height={16}
+          className="transition-transform group-hover:translate-x-0.5"
         />
       </button>
     </section>

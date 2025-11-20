@@ -55,73 +55,98 @@ const SharedHeader = ({ subHeader, title, userImg }: SharedHeaderProps) => {
   };
 
   const renderFilterTrigger = () => (
-    <div className="filter-trigger">
-      <figure>
+    <div className="flex items-center justify-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-2.5 shadow-sm transition-all hover:border-pink-500/30 hover:shadow-md">
+      <div className="flex items-center gap-2">
         <Image
           src="/assets/icons/hamburger.svg"
-          alt="hamburger"
+          alt="filter"
           width={14}
           height={14}
+          className="opacity-60"
         />
-        <span>{selectedFilter}</span>
-      </figure>
+        <span className="text-sm font-semibold text-gray-700">{selectedFilter}</span>
+      </div>
       <Image
         src="/assets/icons/arrow-down.svg"
-        alt="arrow-down"
-        width={20}
-        height={20}
+        alt="arrow"
+        width={16}
+        height={16}
+        className="opacity-60"
       />
     </div>
   );
 
   return (
-    <header className="header">
-      <section className="header-container">
-        <figure className="details">
+    <header className="flex flex-col gap-8">
+      {/* Top Section: Title & Actions */}
+      <section className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        {/* Title Area */}
+        <div className="flex items-start gap-4">
           {userImg && (
-            <ImageWithFallback
-              src={userImg}
-              alt="user"
-              width={66}
-              height={66}
-              className="rounded-full"
-            />
+            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl ring-4 ring-gray-100/50 shadow-lg">
+              <ImageWithFallback
+                src={userImg}
+                alt="user"
+                width={64}
+                height={64}
+                className="h-full w-full object-cover"
+              />
+            </div>
           )}
-          <article>
-            <p>{subHeader}</p>
-            <h1>{title}</h1>
-          </article>
-        </figure>
+          <div className="flex flex-col gap-1.5">
+            <p className="text-sm font-semibold uppercase tracking-wider text-pink-500">
+              {subHeader}
+            </p>
+            <h1 className="text-4xl font-black capitalize leading-tight tracking-tight text-gray-900">
+              {title}
+            </h1>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
         {isAuthenticated && (
-          <aside>
-            <Link href="/upload">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/upload"
+              className="group flex items-center gap-2.5 rounded-full border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:border-pink-500/30 hover:bg-pink-50 hover:text-pink-600 hover:shadow-md"
+            >
               <Image
                 src="/assets/icons/upload.svg"
                 alt="upload"
                 width={16}
                 height={16}
+                className="transition-transform group-hover:scale-110"
               />
-              <span>Upload a video</span>
+              <span className="truncate">Upload a video</span>
             </Link>
             <RecordScreen />
-          </aside>
+          </div>
         )}
       </section>
-      <section className="search-filter">
-        <div className="search">
+
+      {/* Search & Filter Section */}
+      <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        {/* Search Bar */}
+        <div className="group relative w-full max-w-xl">
+          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+            <Image
+              src="/assets/icons/search.svg"
+              alt="search"
+              width={18}
+              height={18}
+              className="opacity-40 transition-opacity group-focus-within:opacity-60"
+            />
+          </div>
           <input
             type="text"
             placeholder="Search for videos, tags, folders..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Image
-            src="/assets/icons/search.svg"
-            alt="search"
-            width={16}
-            height={16}
+            className="w-full rounded-full border border-gray-200 bg-white py-3 pl-12 pr-5 text-sm font-medium text-gray-900 placeholder:text-gray-400 shadow-sm transition-all focus:border-pink-500 focus:outline-none focus:ring-4 focus:ring-pink-500/10"
           />
         </div>
+
+        {/* Filter Dropdown */}
         <DropdownList
           options={filterOptions}
           selectedOption={selectedFilter}
